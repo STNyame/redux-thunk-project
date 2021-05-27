@@ -1,54 +1,41 @@
 // src/components/PostsFeed.js
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import moment from "moment";
+import React, { useEffect } from "react";
 
-const API_URL = `https://codaisseur-coders-network.herokuapp.com/posts`;
+import moment from "moment";
+import { useDispatch, useSelector } from "react-redux";
+import { selectFeedLoading, selectFeedPosts } from "../store/feed/selectors";
+import { fetchNext5Posts } from "../store/feed/actions";
 
 export default function PostsFeed() {
-  const [data, setData] = useState({
-    loading: true,
-    posts: [],
-  });
-
-  async function fetchNext5Posts(offset, limit) {
-    setData({ ...data, loading: true });
-
-    // TODO
-    // fetch next set of posts (use offset+limit),
-    //  and define the variable `morePosts`
-    const fetchedPosts = await axios.get(
-      `${API_URL}?offset=${offset}&limit=${limit}`
-    );
-    const morePosts = fetchedPosts.data.rows;
-    console.log(morePosts);
-    setData({
-      loading: false,
-      posts: [...data.posts, ...morePosts],
-    });
-  }
+  const dispatch = useDispatch();
+  const loading = useSelector(selectFeedLoading);
+  const data = useSelector(selectFeedPosts);
 
   useEffect(() => {
-    fetchNext5Posts(data.posts.length, 5);
-  }, []);
+    dispatch(fetchNext5Posts());
+  }, [dispatch]);
 
-  console.log(data);
   return (
     <div className="PostsFeed">
       <h2>Recent posts</h2>
 
-      {data.posts &&
-        data.posts.map((post) => (
+      {data &&
+        data.map((post) => (
           <div key={post.id}>
             <h3>{post.title}</h3>
-            <p>{post.content}</p>
+            <p>{moment(post.createdAt).format("DD-MM-YYYY")}</p>
+            <p>
+              {post.tags.map((tag, i) => (
+                <button key={i}>{tag.tag}</button>
+              ))}
+            </p>
           </div>
         ))}
 
-      {data.loading ? (
+      {loading ? (
         "Loading..."
       ) : (
-        <button onClick={() => fetchNext5Posts(data.posts.length, 5)}>
+        <button onClick={() => dispatch(fetchNext5Posts())}>
           Load more posts
         </button>
       )}
