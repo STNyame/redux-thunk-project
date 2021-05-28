@@ -6,9 +6,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { selectFeedLoading, selectFeedPosts } from "../store/feed/selectors";
 import { fetchNext5Posts } from "../store/feed/actions";
 import { Link } from "react-router-dom";
+import { selectUser } from "../store/auth/selectors";
 
 export default function PostsFeed() {
   const dispatch = useDispatch();
+  const user = useSelector(selectUser);
   const loading = useSelector(selectFeedLoading);
   const data = useSelector(selectFeedPosts);
 
@@ -23,9 +25,15 @@ export default function PostsFeed() {
       {data &&
         data.map((post) => (
           <div key={post.id}>
-            <Link style={{ textDecoration: "none" }} to={`/post/${post.id}`}>
-              <h3>{post.title}</h3>
-            </Link>
+            {user.accessToken ? (
+              <Link style={{ textDecoration: "none" }} to={`/post/${post.id}`}>
+                <h3>{post.title}</h3>
+              </Link>
+            ) : (
+              <Link style={{ textDecoration: "none" }} to={`/login`}>
+                <h3>{post.title}</h3>
+              </Link>
+            )}
             <p>{moment(post.createdAt).format("DD-MM-YYYY")}</p>
             <p>
               {post.tags.map((tag, i) => (
